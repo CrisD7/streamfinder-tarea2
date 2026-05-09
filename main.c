@@ -41,12 +41,16 @@ int main() {
         cargar_peliculas(pelis_byid, pelis_bygenres, pelis_bydirectors, "Top1500.csv");
         break;
     case '2':
+        buscar_por_genero(pelis_bygenres);
         break;
     case '3':
+        buscar_por_director(pelis_bydirectors);
         break;
     case '4':
+        buscar_por_decada(pelis_byid);
         break;
     case '5':
+        busqueda_avanzada(pelis_bygenres);
         break;
     case '6':
         limpiarPantalla();

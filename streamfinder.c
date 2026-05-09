@@ -13,8 +13,10 @@ int is_equal_int(void *key1, void *key2) {
 }
 
 void cargar_peliculas(Map *pelis_byid, Map *pelis_bygenres, Map *pelis_bydirectors, const char *archivo_csv) {
+    limpiarPantalla();
     FILE *archivo = fopen(archivo_csv, "r");
     if (archivo == NULL) {
+        perror("Error al abrir el archivo");
         return;
     }
 
@@ -62,6 +64,7 @@ void cargar_peliculas(Map *pelis_byid, Map *pelis_bygenres, Map *pelis_bydirecto
         }
     }
     fclose(archivo);
+    puts("Archivo cargado con exito...");
 }
 
 void mostrar_pelicula(Film *peli) {
@@ -82,10 +85,10 @@ void mostrar_pelicula(Film *peli) {
     printf("Calificaciones de usuarios -> ");
     MapPair *rating_pair = map_first(peli->user_ratings);
     if (rating_pair == NULL) {
-        printf("Nadie ha calificado esta película aún.");
+        printf("N/A");
     } else {
         while (rating_pair != NULL) {
-            printf("%s: %d | ", (char *)rating_pair->key, *(int *)rating_pair->value);
+            printf("%s: %ld | ", (char *)rating_pair->key, (long)rating_pair->value);
             rating_pair = map_next(peli->user_ratings);
         }
     }
@@ -94,6 +97,7 @@ void mostrar_pelicula(Film *peli) {
 }
 
 void buscar_por_genero(Map *pelis_bygenres) {
+    limpiarPantalla();
     char genero[100];
     printf("Ingrese el género a buscar (ej. Drama, Action): ");
     scanf(" %[^\n]", genero);
@@ -113,20 +117,140 @@ void buscar_por_genero(Map *pelis_bygenres) {
 }
 
 void buscar_por_director(Map *pelis_bydirectors) {
+    limpiarPantalla();
     char director[100];
-    printf("Ingrese el nombre del director a buscar: ");
+    printf("Ingrese el nombre del director a buscar (ej. Tarantino, Nolan): ");
     scanf(" %[^\n]", director);
 
-    MapPair *pair = map_search(pelis_bydirectors, director);
+    printf("\n=== Resultados para '%s' ===\n", director);
+    int encontradas = 0;
 
-    if (pair != NULL) {
-        List *lista_peliculas = (List *)pair->value;
-        printf("\n=== Películas del director: %s ===\n", director);
+    MapPair *pair = map_first(pelis_bydirectors);
+    while (pair != NULL) {
+        char *director_key = (char *)pair->key;
         
-        for (Film *peli = list_first(lista_peliculas); peli != NULL; peli = list_next(lista_peliculas)) {
-            mostrar_pelicula(peli);
+        if (strstr(director_key, director) != NULL) {
+            List *lista_peliculas = (List *)pair->value;
+            
+            for (Film *peli = list_first(lista_peliculas); peli != NULL; peli = list_next(lista_peliculas)) {
+                mostrar_pelicula(peli);
+                encontradas++;
+            }
         }
-    } else {
+        pair = map_next(pelis_bydirectors);
+    }
+    if (encontradas == 0) {
         printf("No se encontraron películas para el director '%s'.\n", director);
+        printf("(Nota: Recuerda respetar las mayúsculas iniciales, ej. 'Christopher' o 'Nolan').\n");
+    }
+}
+
+void buscar_por_decada(Map *pelis_byid) {
+    limpiarPantalla();
+    int decada;
+    printf("Ingrese la década a buscar (ej. 1990): ");
+    scanf("%d", &decada);
+
+    printf("\n=== Películas de la década de %d ===\n", decada);
+    int encontradas = 0;
+
+    MapPair *pair = map_first(pelis_byid);
+    while (pair != NULL) {
+        Film *peli = (Film *)pair->value;
+        if (peli->year >= decada && peli->year < decada + 10) {
+            mostrar_pelicula(peli);
+            encontradas++;
+        }
+        
+        pair = map_next(pelis_byid);
+    }
+    if (encontradas == 0) {
+        printf("No se encontraron películas de esa década.\n");
+    }
+}
+
+void busqueda_avanzada(Map *pelis_bygenres) {
+    limpiarPantalla();
+    char genero[100];
+    int decada, encontradas = 0;
+
+    printf("Ingrese el género a buscar (ej. Drama, Action): ");
+    scanf(" %[^\n]", genero);
+    
+    MapPair *pair = map_search(pelis_bygenres, genero);
+    if (pair == NULL) {
+        printf("No se encontraron películas para el género '%s'.\n", genero);
+        return;
+    }
+
+    printf("Ingrese la década a buscar (ej. 1990): ");
+    scanf("%d", &decada);
+
+    printf("\n=== Películas de %s de la década de %d ===\n", genero, decada);
+    
+    List *lista_peliculas = (List *)pair->value;
+    for (Film *peli = list_first(lista_peliculas); peli != NULL; peli = list_next(lista_peliculas)) {
+        if (peli->year >= decada && peli->year < decada + 10) {
+            mostrar_pelicula(peli);
+            encontradas++;
+        }
+    }
+    if (encontradas == 0) {
+        printf("No se encontraron películas de esa década.\n");
+    }
+}
+
+void agregar_a_watchlist(Map *pelis_byid, List *watchlist) {
+    limpiarPantalla();
+    char id[100];
+    printf("Ingrese el ID de la película a agregar (ej. tt0068646): ");
+    scanf(" %99[^\n]", id);
+
+    MapPair *pair = map_search(pelis_byid, id);
+    if (pair != NULL) {
+        Film *peli = (Film *)pair->value;
+        list_pushBack(watchlist, peli);
+        printf("¡La película '%s' se ha agregado a tu Watchlist!\n", peli->title);
+    } else {
+        printf("Error: No se encontró ninguna película con el ID '%s' en el catálogo.\n", id);
+    }
+}
+
+void mostrar_watchlist(List *watchlist) {
+    limpiarPantalla();
+    if (list_first(watchlist) == NULL) {
+        printf("Tu Watchlist está vacía. ¡Agrega algunas películas primero!\n");
+        return;
+    }
+
+    printf("\n=== MI WATCHLIST ===\n");
+    for (Film *peli = list_first(watchlist); peli != NULL; peli = list_next(watchlist)) {
+        mostrar_pelicula(peli);
+    }
+}
+
+void eliminar_de_watchlist(List *watchlist) {
+    limpiarPantalla();
+    if (list_first(watchlist) == NULL) {
+        printf("Tu Watchlist ya está vacía.\n");
+        return;
+    }
+
+    char id[100];
+    printf("Ingrese el ID de la película a eliminar: ");
+    scanf(" %99[^\n]", id);
+
+    int encontrada = 0;
+    for (Film *peli = list_first(watchlist); peli != NULL; peli = list_next(watchlist)) {
+        if (strcmp(peli->id, id) == 0) {
+            list_popCurrent(watchlist);
+            printf("¡La película '%s' ha sido eliminada de tu Watchlist!\n", peli->title);
+            encontrada = 1;
+            break;
+        }
+    }
+
+    if (!encontrada) {
+        printf("La película con ID '%s' no estaba en tu Watchlist.\n", id);
     }
 }
