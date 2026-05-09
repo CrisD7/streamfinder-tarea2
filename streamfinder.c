@@ -63,3 +63,70 @@ void cargar_peliculas(Map *pelis_byid, Map *pelis_bygenres, Map *pelis_bydirecto
     }
     fclose(archivo);
 }
+
+void mostrar_pelicula(Film *peli) {
+    printf("Título: %s\n", peli->title);
+    printf("Año: %d | Rating: %.1f\n", peli->year, peli->rating);
+
+    printf("Directores: ");
+    for (char *dir = list_first(peli->directors); dir != NULL; dir = list_next(peli->directors)) {
+        printf("%s ", dir);
+    }
+    printf("\n");
+
+    printf("Géneros: ");
+    for (char *gen = list_first(peli->genres); gen != NULL; gen = list_next(peli->genres)) {
+        printf("%s ", gen);
+    }
+    printf("\n");
+    printf("Calificaciones de usuarios -> ");
+    MapPair *rating_pair = map_first(peli->user_ratings);
+    if (rating_pair == NULL) {
+        printf("Nadie ha calificado esta película aún.");
+    } else {
+        while (rating_pair != NULL) {
+            printf("%s: %d | ", (char *)rating_pair->key, *(int *)rating_pair->value);
+            rating_pair = map_next(peli->user_ratings);
+        }
+    }
+    printf("\n");
+    puts("----------------------------------------");
+}
+
+void buscar_por_genero(Map *pelis_bygenres) {
+    char genero[100];
+    printf("Ingrese el género a buscar (ej. Drama, Action): ");
+    scanf(" %[^\n]", genero);
+
+    MapPair *pair = map_search(pelis_bygenres, genero);
+
+    if (pair != NULL) {
+        List *lista_peliculas = (List *)pair->value;
+        printf("\n=== Películas del género: %s ===\n", genero);
+        
+        for (Film *peli = list_first(lista_peliculas); peli != NULL; peli = list_next(lista_peliculas)) {
+            mostrar_pelicula(peli);
+        }
+    } else {
+        printf("No se encontraron películas para el género '%s'.\n", genero);
+    }
+}
+
+void buscar_por_director(Map *pelis_bydirectors) {
+    char director[100];
+    printf("Ingrese el nombre del director a buscar: ");
+    scanf(" %[^\n]", director);
+
+    MapPair *pair = map_search(pelis_bydirectors, director);
+
+    if (pair != NULL) {
+        List *lista_peliculas = (List *)pair->value;
+        printf("\n=== Películas del director: %s ===\n", director);
+        
+        for (Film *peli = list_first(lista_peliculas); peli != NULL; peli = list_next(lista_peliculas)) {
+            mostrar_pelicula(peli);
+        }
+    } else {
+        printf("No se encontraron películas para el director '%s'.\n", director);
+    }
+}
