@@ -80,7 +80,7 @@ int main() {
         }
         break;
     case '7':
-
+      calificar_pelicula(pelis_byid);
       break;
     }
     presioneTeclaParaContinuar();
