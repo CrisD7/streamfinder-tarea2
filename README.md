@@ -1,12 +1,11 @@
 # StreamFinder - Base de Datos de Películas 
 
-**Tarea 2 - Estructuras de Datos** 
-**Pontificia Universidad Católica de Valparaíso**
+**Tarea 2 - Estructuras de Datos**
 
-##  Contribuciones del Equipo
+###  Contribuciones del Equipo
 
-* **Cris:** Desarrollo de la lógica del menú principal (`main.c`), implementación de las funciones de carga de datos, estructura base de `streamfinder.c`, implementación de las búsquedas por género, década, búsqueda avanzada, y manejo del control de versiones (resolución de conflictos en Git), implementación del sistema de la Watchlist (agregar, mostrar, eliminar).
-* **Seba:** Implementación y ajuste de los Tipos de Datos Abstractos (TDAs List y Map), desarrollo de la lógica para la búsqueda parcial por director (`strstr`) y la función para calificar películas. 
+* **Cristóbal Sazo:** Desarrollo de la lógica del menú principal (`main.c`), implementación de las funciones de carga de datos, estructura base de `streamfinder.c`, implementación de las búsquedas por género, década, búsqueda avanzada, y manejo del control de versiones (resolución de conflictos en Git), implementación del sistema de la Watchlist (agregar, mostrar, eliminar).
+* **Sebastián Riveros:** Implementación y ajuste de los Tipos de Datos Abstractos (TDAs List y Map), desarrollo de la lógica para la búsqueda parcial por director (`strstr`) y la función para calificar películas. 
 
 ##  Estado de la Aplicación y Limitaciones (Qué funciona y qué no)
 

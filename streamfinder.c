@@ -37,9 +37,9 @@ void cargar_peliculas(Map *pelis_byid, Map *pelis_bygenres, Map *pelis_bydirecto
         strcpy(peli->id, campos[1]); 
         strcpy(peli->title, campos[5]); 
         peli->rating = atof(campos[8]); 
-        peli->year = atoi(campos[10]); 
+        peli->year = atoi(campos[10]);  
         peli->genres = split_string(campos[11], ", "); 
-        peli->directors = split_string(campos[14], ", "); 
+        peli->directors = split_string(campos[14], ","); 
         peli->user_ratings = map_create(is_equal_str); 
 
         // Insertamos la película en el mapa por ID.
@@ -63,10 +63,22 @@ void cargar_peliculas(Map *pelis_byid, Map *pelis_bygenres, Map *pelis_bydirecto
         // Recorremos la lista de directores, para cada director insertamos la película en el mapa por director.
         char *director = list_first(peli->directors);
         while (director != NULL) {
+        
+            director[strcspn(director, "\r\n")] = 0;
+            while (*director == ' ') director++;
+
+            int len = strlen(director);
+            while (len > 0 && director[len - 1] == ' ') {
+                director[len - 1] = '\0';
+                len--;
+            }
+            // Se busca el director en el mapa, si no se encuentra, se crea una lista para ese director y se
+            // inserta la película, si ya existe una lista paraese director, se agrega la película a esa lista.
             MapPair *director_pair = map_search(pelis_bydirectors, director);
             if (director_pair == NULL) {
                 List *new_list = list_create();
                 list_pushBack(new_list, peli);
+                
                 map_insert(pelis_bydirectors, director, new_list);
             } else {
                 List *director_list = (List *)director_pair->value;
@@ -140,34 +152,23 @@ void buscar_por_genero(Map *pelis_bygenres) {
 void buscar_por_director(Map *pelis_bydirectors) {
     limpiarPantalla();
     char director[100];
-    printf("Ingrese el nombre del director a buscar (ej. Tarantino, Nolan): ");
+    printf("Ingrese el nombre Exacto del director a buscar (ej. Christopher Nolan): ");
     scanf(" %[^\n]", director);
-
-    printf("\n=== Resultados para '%s' ===\n", director);
-    int encontradas = 0;
-
-    // Obtenemos la lista de películas para el director ingresado y la mostramos. 
-    // Se recorre el mapa de directores, si el nombre del director coincide con el ingresado, 
-    // se muestra la lista de películas asociada a ese director.
-    MapPair *pair = map_first(pelis_bydirectors);
-    while (pair != NULL) {
-        char *director_key = (char *)pair->key; 
-        
-        if (strstr(director_key, director) != NULL) { 
-            List *lista_peliculas = (List *)pair->value;
-            
-            for (Film *peli = list_first(lista_peliculas); peli != NULL; peli = list_next(lista_peliculas)) {
-                mostrar_pelicula(peli);
-                encontradas++;
-            }
+    
+    // Obtenemos la lista de películas del director ingresado y la mostramos.
+    MapPair *pair = map_search(pelis_bydirectors, director); 
+    if (pair != NULL) { 
+        printf("\n=== Resultados para '%s' ===\n", director);
+        List *lista_peliculas = (List *)pair->value;
+        for (Film *peli = list_first(lista_peliculas); peli != NULL ; peli = list_next(lista_peliculas)) {
+            mostrar_pelicula(peli);
         }
-        pair = map_next(pelis_bydirectors);
+    
     }
-    // Si no se encontró ninguna película, se imprime un mensaje indicándolo.
-    if (encontradas == 0) {
+    else { // Si no se encontró ninguna película, se imprime un mensaje indicándolo.
         printf("No se encontraron películas para el director '%s'.\n", director);
-        printf("(Nota: Recuerda respetar las mayúsculas iniciales, ej. 'Christopher' o 'Nolan').\n");
-    }
+        printf("(Nota: Recuerda respetar las mayúsculas iniciales, ej. 'Christopher Nolan').\n");
+    }  
 }
 
 // Función para buscar películas según la década en la que fueron lanzadas.
